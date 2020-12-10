@@ -10,12 +10,29 @@ swid = "{94FD803F-87FC-4BDC-BD80-3F87FCEBDCFC}"
 espn_s2 = "AEA%2Fs7CAHybhPWiuG5cTGqmfaH2%2F%2FeUCDP5bTDB4j0hDCLGW58ieoYJCnEB9uxNNPrx1CRjc8cuCinM54m2mUnf5PwfVmZ6Xup" \
           "0Hx1GSpuVoHuTjibfHSbu%2FDM0Zp%2BDhDygZS7zUVRZ1ag7Dm%2F7S2zcys1Ywxf4Fj1mFVKOmnIygFMV1a8LlMRy5W4ZpkvCvJzmQ" \
           "JTZcgfBncMmt1wh5IbsVWJwAm8ElISHA%2F9ooLplPppnKwIi1jbzeJv1UHIuh%2Bio%3D"
+
 slot_codes = {
     0: 'QB', 1: 'TQB', 2: 'RB', 3: 'RB/WR', 4: 'WR', 5: 'WR/TE',
     6: 'TE', 7: 'OP',  8: 'DT', 9: 'DE', 10: 'LB', 11: 'DL',
     12: 'CB', 13: 'S', 14: 'DB', 15: 'DP', 16: 'D/ST', 17: 'K',
     18: 'P', 19: 'HC', 20: 'BE', 21: 'IR', 22: '', 23: 'RB/WR/TE'
 }
+default_codes = {
+    1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'D/ST'
+}
+
+
+# def get_position(eligible):
+#     if 25 in eligible:
+#         eligible.remove(25)
+#     return {
+#         [2, 3, 23, 7, 20, 21]: 'RB',
+#         [3, 4, 5, 23, 7, 20, 21]: 'WR',
+#         [5, 6, 23, 7, 20, 21]: 'TE',
+#         [0, 7, 20, 21]: 'QB',
+#     }.get(eligible, lambda: "Ack!")()
+
+
 leagueID = 1080747
 season = 2020
 
@@ -74,10 +91,11 @@ for team in response3['teams']:
         continue
 
     # Source: https://stmorse.github.io/journal/espn-fantasy-projections.html
+    # Modified: Iain Muir
     for p in team['roster']['entries']:
         name = p['playerPoolEntry']['player']['fullName']
-        slot = p['lineupSlotId']
-        position = slot_codes[slot]
+        default_position = p['playerPoolEntry']['player']['defaultPositionId']
+        position = default_codes[default_position]
 
         # injured status (need try/exc bc of D/ST)
         injury_status = 'NA'
@@ -97,16 +115,20 @@ for team in response3['teams']:
                 projected = stat['appliedTotal']
 
         data.append([
-            name, slot, position, injury_status, projected, actual
+            name, position, injury_status, projected, actual
         ])
 
     data = pd.DataFrame(data,
-                        columns=['Player', 'Slot', 'Pos', 'Status', 'Proj', 'Actual'])
-
-print(data)
+                        columns=['Player', 'Pos', 'Status', 'Proj', 'Actual'])
 
 # --------------------------- OPTIMIZED LINEUP ---------------------------
 
+for pos, num in rosterSettings.items():
+    print(pos)
+    options = data.query("Pos == '" + pos + "'")
+    options = options.sort_values(by="Proj", ascending=False)
+    print(options)
+    print()
 
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
