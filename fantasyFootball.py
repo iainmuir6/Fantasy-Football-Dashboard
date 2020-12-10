@@ -155,13 +155,14 @@ for pos, num in rosterSettings.items():
         if (starters['Player'] == player[0]).any():
             player.append(False)
         else:
+            player[3] = player[2]
             player.append(True)
         optimized.append(player)
 
 optimized = pd.DataFrame(optimized,
                          columns=['Player', 'ID', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual', 'New'])
-optimized['Pos'] = pd.Categorical(optimized['Pos'], ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K'])
-optimized = optimized.sort_values(by=['Pos', 'Proj'], ascending=[True, False])
+optimized['currentPos'] = pd.Categorical(optimized['currentPos'], ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K'])
+optimized = optimized.sort_values(by=['currentPos', 'Proj'], ascending=[True, False])
 
 # --------------------------- STREAMLIT DASHBOARD ---------------------------
 
@@ -171,6 +172,9 @@ old, new = st.beta_columns(2)
 for p1, p2 in zip(starters.values, optimized.values):
     old.write(p1[2] + " " + p1[0] + "  -  " + str(round(p1[-2], 2)))
     new.write(p2[2] + " " + p2[0] + "  -  " + str(round(p2[-3], 2)))
+
+old.write("Total: " + str(round(starters['Proj'].sum(), 2)))
+new.write("Total: " + str(round(optimized['Proj'].sum(), 2)))
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
 
