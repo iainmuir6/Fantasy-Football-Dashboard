@@ -47,12 +47,12 @@ url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/se
       '?view=mSettings'
 response2 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
+rosterSettings = {}
 for code, quantity in response2['settings']['rosterSettings']['lineupSlotCounts'].items():
     code = int(code)
     quantity = int(quantity)
     if quantity != 0:
-        print(slot_codes[code], quantity)
-exit(0)
+        rosterSettings[slot_codes[code]] = quantity
 
 # --------------------------- WEEKLY DATA ---------------------------
 
@@ -65,10 +65,15 @@ response3 = requests.get(url,
                          params={'scoringPeriodId': week},
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
 
+data = []
+
 for team in response3['teams']:
-    data = []
     teamID = team['id']
 
+    if leagueInfo[teamID]['ownerIDs'][0] != swid:
+        continue
+
+    # Source: https://stmorse.github.io/journal/espn-fantasy-projections.html
     for p in team['roster']['entries']:
         name = p['playerPoolEntry']['player']['fullName']
         slot = p['lineupSlotId']
@@ -92,15 +97,16 @@ for team in response3['teams']:
                 projected = stat['appliedTotal']
 
         data.append([
-            week, teamID, name, slot, position, injury_status, projected, actual
+            name, slot, position, injury_status, projected, actual
         ])
 
     data = pd.DataFrame(data,
-                        columns=['Week', 'Team', 'Player', 'Slot',
-                                 'Pos', 'Status', 'Proj', 'Actual'])
+                        columns=['Player', 'Slot', 'Pos', 'Status', 'Proj', 'Actual'])
 
-    print(leagueInfo[teamID]['teamName'])
-    print(data)
-    print()
+print(data)
+
+# --------------------------- OPTIMIZED LINEUP ---------------------------
+
+
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
