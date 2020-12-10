@@ -1,6 +1,7 @@
 # Iain Muir
 # iam9ez
 
+import streamlit as st
 import pandas as pd
 import requests
 import time
@@ -35,6 +36,14 @@ default_codes = {
 
 leagueID = 1080747
 season = 2020
+
+"""
+TO DO LIST
+    • Team Abbreviations Dictionary {id: abbrev}
+    • Dashboard
+    • Free Agents
+"""
+
 
 start = time.time()
 
@@ -124,6 +133,8 @@ for team in response3['teams']:
                         columns=['Player', 'ID', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual'])
 
 starters = data.query('currentPos != "BE"')
+starters['currentPos'] = pd.Categorical(starters['currentPos'], ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K'])
+starters = starters.sort_values(by=['currentPos', 'Proj'], ascending=[True, False])
 
 # --------------------------- OPTIMIZED LINEUP ---------------------------
 
@@ -140,11 +151,28 @@ for pos, num in rosterSettings.items():
     data = data.drop(labels=list(options.index), axis=0)
 
     for player in options.values:
-        optimized.append(list(player))
+        player = list(player)
+        if (starters['Player'] == player[0]).any():
+            player.append(False)
+        else:
+            player.append(True)
+        optimized.append(player)
 
 optimized = pd.DataFrame(optimized,
-                         columns=['Player', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual'])
+                         columns=['Player', 'ID', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual', 'New'])
+optimized['Pos'] = pd.Categorical(optimized['Pos'], ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K'])
+optimized = optimized.sort_values(by=['Pos', 'Proj'], ascending=[True, False])
 
-print(optimized)
+# --------------------------- STREAMLIT DASHBOARD ---------------------------
+
+st.title("FANTASY LINEUP OPTIMIZATION")
+old, new = st.beta_columns(2)
+
+for p1, p2 in zip(starters.values, optimized.values):
+    old.write(p1[2] + " " + p1[0] + "  -  " + str(round(p1[-2], 2)))
+    new.write(p2[2] + " " + p2[0] + "  -  " + str(round(p2[-3], 2)))
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
+
+# team_logo = "https://a.espncdn.com/i/teamlogos/nfl/500/" + team_abbrev + ".png"
+# headshot = "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/" + str(player_id) + ".png&w=350&h=254"
