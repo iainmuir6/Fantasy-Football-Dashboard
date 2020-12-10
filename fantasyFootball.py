@@ -96,6 +96,8 @@ for team in response3['teams']:
         name = p['playerPoolEntry']['player']['fullName']
         default_position = p['playerPoolEntry']['player']['defaultPositionId']
         position = default_codes[default_position]
+        current = slot_codes[p['lineupSlotId']]
+        player_id = p['playerId']
 
         # injured status (need try/exc bc of D/ST)
         injury_status = 'NA'
@@ -115,20 +117,34 @@ for team in response3['teams']:
                 projected = stat['appliedTotal']
 
         data.append([
-            name, position, injury_status, projected, actual
+            name, player_id, position, current, injury_status, projected, actual
         ])
 
     data = pd.DataFrame(data,
-                        columns=['Player', 'Pos', 'Status', 'Proj', 'Actual'])
+                        columns=['Player', 'ID', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual'])
+
+starters = data.query('currentPos != "BE"')
 
 # --------------------------- OPTIMIZED LINEUP ---------------------------
 
-for pos, num in rosterSettings.items():
-    print(pos)
-    options = data.query("Pos == '" + pos + "'")
-    options = options.sort_values(by="Proj", ascending=False)
-    print(options)
-    print()
+optimized = []
 
+for pos, num in rosterSettings.items():
+    if pos == "BE":
+        continue
+    elif pos == "RB/WR/TE":
+        options = data.query("Pos == 'RB' | Pos == 'WR' | Pos == 'TE'")
+    else:
+        options = data.query("Pos == '" + pos + "'")
+    options = options.sort_values(by="Proj", ascending=False)[:num]
+    data = data.drop(labels=list(options.index), axis=0)
+
+    for player in options.values:
+        optimized.append(list(player))
+
+optimized = pd.DataFrame(optimized,
+                         columns=['Player', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual'])
+
+print(optimized)
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
