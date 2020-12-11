@@ -112,7 +112,7 @@ teamIDs = {
 }
 
 leagueID = 1080747
-season = 2020
+season = 2021
 
 start = time.time()
 
@@ -120,6 +120,9 @@ start = time.time()
 url = "https://fantasy.espn.com/apis/v3/games/ffl/seasons/" + str(season) + "/segments/0/leagues/" + str(leagueID)
 response1 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
+
+print(response1)
+exit(0)
 
 leagueInfo = {}
 owners_dict = {}
