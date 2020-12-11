@@ -21,17 +21,9 @@ slot_codes = {
 default_codes = {
     1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'D/ST'
 }
-
-
-# def get_position(eligible):
-#     if 25 in eligible:
-#         eligible.remove(25)
-#     return {
-#         [2, 3, 23, 7, 20, 21]: 'RB',
-#         [3, 4, 5, 23, 7, 20, 21]: 'WR',
-#         [5, 6, 23, 7, 20, 21]: 'TE',
-#         [0, 7, 20, 21]: 'QB',
-#     }.get(eligible, lambda: "Ack!")()
+teamIDs = {
+    -16018: "no"
+}
 
 
 leagueID = 1080747
@@ -164,19 +156,46 @@ optimized = pd.DataFrame(optimized,
 optimized['currentPos'] = pd.Categorical(optimized['currentPos'], ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K'])
 optimized = optimized.sort_values(by=['currentPos', 'Proj'], ascending=[True, False])
 
+starters['Old'] = [False if (optimized['Player'] == list(starter)[0]).any() else True for starter in starters.values]
+print(starters)
+
 # --------------------------- STREAMLIT DASHBOARD ---------------------------
 
-st.title("FANTASY LINEUP OPTIMIZATION")
+st.markdown("<center> <img src='https://espnpressroom.com/us/files/2016/08/Fantasy-Football-App-LOGO-500x405.png' "
+            "height='200' /> </center>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center';> Fantasy Lineup Optimization </h1>", unsafe_allow_html=True)
 old, new = st.beta_columns(2)
+old.markdown("<h3 style='text-align:center';> Current Lineup </h1>", unsafe_allow_html=True)
+new.markdown("<h3 style='text-align:center';> Optimized Lineup </h1>", unsafe_allow_html=True)
 
 for p1, p2 in zip(starters.values, optimized.values):
-    old.write(p1[2] + " " + p1[0] + "  -  " + str(round(p1[-2], 2)))
-    new.write(p2[2] + " " + p2[0] + "  -  " + str(round(p2[-3], 2)))
+    if p1[2] == 'D/ST':
+        src1 = "https://a.espncdn.com/i/teamlogos/nfl/500/" + teamIDs[p1[1]] + ".png"
+        src2 = "https://a.espncdn.com/i/teamlogos/nfl/500/" + teamIDs[p2[1]] + ".png"
+        height = '50'
+    else:
+        src1 = "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/" + str(p1[1]) + ".png&w=350&h=254"
+        src2 = "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/" + str(p2[1]) + ".png&w=350&h=254"
+        height = '40'
 
-old.write("Total: " + str(round(starters['Proj'].sum(), 2)))
-new.write("Total: " + str(round(optimized['Proj'].sum(), 2)))
+    color1 = 'white'
+    color2 = 'white'
+    if p1[-1]:
+        color1 = 'lightcoral'
+    if p2[-1]:
+        color2 = 'lightgreen'
+
+    old.markdown("<p style='text-align:left;background-color:" + color1 + ";'> <img src='" + src1 + "' height='" +
+                 height + "'/>  (" + p1[2] + ") <b>" + p1[0] + "</b>  -  " + str(round(p1[-3], 2)) + " </p>",
+                 unsafe_allow_html=True)
+    new.markdown("<p style='text-align:left;background-color:" + color2 + ";'> <img src='" + src2 + "' height='" +
+                 height + "'/>  (" + p2[2] + ") <b>" + p2[0] + "</b>  -  " + str(round(p2[-3], 2)) + " </p>",
+                 unsafe_allow_html=True)
+
+
+old.markdown("<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(starters['Proj'].sum(), 2)) +
+             "</b> </p>", unsafe_allow_html=True)
+new.markdown("<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(optimized['Proj'].sum(), 2)) +
+             "</b> </p>", unsafe_allow_html=True)
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
-
-# team_logo = "https://a.espncdn.com/i/teamlogos/nfl/500/" + team_abbrev + ".png"
-# headshot = "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/" + str(player_id) + ".png&w=350&h=254"
