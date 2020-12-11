@@ -57,8 +57,8 @@ class EspnApi:
                                 "/segments/0/leagues/" + str(self.league_id),
                             cookies={
                                 "SWID": self.swid,
-                                "espn_s2": self.espn_s2}
-                            ).json()
+                                "espn_s2": self.espn_s2
+                            }).json()
         return info
 
     def league_settings(self):
@@ -83,28 +83,42 @@ class EspnApi:
                                                'size', 'tradeSettings'])
                 }
         """
+        settings = requests.get(url='https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(self.season) +
+                                    '/segments/0/leagues/' + str(self.league_id) + '?view=mSettings',
+                                cookies={
+                                    "SWID": self.swid,
+                                    "espn_s2": self.espn_s2
+                                }).json()
+        return settings
 
 
 class FantasyLeague:
     def __init__(self):
         self.name = client.league_info()['settings']['name']
         self.members = {member['id']: member['displayName'] for member in client.league_info()['members']}
+        for member in self.members:
+            LeagueMember(member)
         self.teams = {team['id']: {'name1': self.members[team['owners'][0]],
                                    'name2': self.members[team['owners'][1]] if len(team['owners']) == 2 else "n/a",
                                    'teamName': team['location'] + " " + team['nickname'],
                                    'abbreviation': team['abbrev'],
                                    'ownerIDs': team['owners']} for team in client.league_info()['teams']}
+        for team in self.teams:
+            FantasyTeam(team)
+        self.roster_settings = {client.slot_codes[int(code)]: quantity
+                                for code, quantity
+                                in client.league_settings()['settings']['rosterSettings']['lineupSlotCounts'].items()}
 
 
 class FantasyTeam:
-    def __init__(self):
+    def __init__(self, team_info):
         self.name = ''
         self.owner = ''
         self.roster = ''
 
 
 class LeagueMember:
-    def __init__(self):
+    def __init__(self, member_info):
         self.name = ''
         self.team = ''
         self.swid = ''
