@@ -112,7 +112,7 @@ teamIDs = {
 }
 
 leagueID = 1080747
-season = 2021
+season = 2020
 
 start = time.time()
 
@@ -122,7 +122,6 @@ response1 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
 
 print(response1)
-exit(0)
 
 leagueInfo = {}
 owners_dict = {}
@@ -165,7 +164,6 @@ response3 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
 
 print(response3.keys())
-exit(0)
 
 data = []
 

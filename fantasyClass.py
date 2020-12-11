@@ -20,7 +20,8 @@ class EspnApi:
             0: 'QB', 1: 'TQB', 2: 'RB', 3: 'RB/WR', 4: 'WR', 5: 'WR/TE',
             6: 'TE', 7: 'OP',  8: 'DT', 9: 'DE', 10: 'LB', 11: 'DL',
             12: 'CB', 13: 'S', 14: 'DB', 15: 'DP', 16: 'D/ST', 17: 'K',
-            18: 'P', 19: 'HC', 20: 'BE', 21: 'IR', 22: '', 23: 'RB/WR/TE'
+            18: 'P', 19: 'HC', 20: 'BE', 21: 'IR', 22: '', 23: 'RB/WR/TE',
+            24: '', 25: 'Rookie'
         }
         self.default_codes = {
             1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'D/ST'
@@ -28,6 +29,19 @@ class EspnApi:
         self.team_ids = {
             -16018: "no"
         }
+
+    def league_history(self):
+        """
+        :param self – NONE
+
+        :return list of league_info dictionaries for each year active
+        """
+        history = requests.get(url="https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/" + str(self.league_id),
+                               cookies={
+                                   "SWID": self.swid,
+                                   "espn_s2": self.espn_s2
+                               }).json()
+        return history
 
     def league_info(self):
         """
@@ -98,22 +112,26 @@ class FantasyLeague:
         self.members = {member['id']: member['displayName'] for member in client.league_info()['members']}
         for member in self.members:
             LeagueMember(member)
-        self.teams = {team['id']: {'name1': self.members[team['owners'][0]],
-                                   'name2': self.members[team['owners'][1]] if len(team['owners']) == 2 else "n/a",
-                                   'teamName': team['location'] + " " + team['nickname'],
-                                   'abbreviation': team['abbrev'],
-                                   'ownerIDs': team['owners']} for team in client.league_info()['teams']}
+        self.teams = [{team['id']: {'name1': self.members[team['owners'][0]],
+                                    'name2': self.members[team['owners'][1]] if len(team['owners']) == 2 else "n/a",
+                                    'teamName': team['location'] + " " + team['nickname'],
+                                    'abbreviation': team['abbrev'],
+                                    'ownerIDs': team['owners']}} for team in client.league_info()['teams']]
         for team in self.teams:
-            FantasyTeam(team)
+            FantasyTeam(list(team.keys())[0], team)
         self.roster_settings = {client.slot_codes[int(code)]: quantity
                                 for code, quantity
                                 in client.league_settings()['settings']['rosterSettings']['lineupSlotCounts'].items()}
 
 
 class FantasyTeam:
-    def __init__(self, team_info):
-        self.name = ''
-        self.owner = ''
+    def __init__(self, team_id, team_info):
+        self.id = team_id
+        self.name = team_info[team_id]['teamName']
+        self.owners = team_info[team_id]['name1'] \
+            if team_info[team_id]['name2'] == 'n/a' \
+            else [team_info[team_id]['name1'],
+                  team_info[team_id]['name2']]
         self.roster = ''
 
 
@@ -125,3 +143,8 @@ class LeagueMember:
 
 
 client = EspnApi()
+league = FantasyLeague()
+for each in client.league_history():
+    print(each)
+    print(each.keys())
+    print()
