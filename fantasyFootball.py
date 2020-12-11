@@ -20,7 +20,7 @@ response = requests.get(url,
                                 espn_s2: '<cookie string>'
                             }
 
-Empty Parameters
+----------------------------------------- Empty Parameters -----------------------------------------
 
 dict_keys(['gameId', 'id', 'members', 'scoringPeriodId', 'seasonId', 'segmentId', 'settings', 'status', 'teams'])
 {'members':  [   {
@@ -42,7 +42,10 @@ dict_keys(['gameId', 'id', 'members', 'scoringPeriodId', 'seasonId', 'segmentId'
              ], ...
 }
 
-Settings Parameter      –       {view: mSettings}
+----------------------------------------- mSettings Parameter -----------------------------------------
+                                        {
+                                            'view': 'mSettings'
+                                        }
 
 dict_keys(['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'settings', 'status'])
 {'draftDetail':     {
@@ -52,11 +55,35 @@ dict_keys(['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmen
  'gameId': int,
  'id': League ID,
  'scoringPeriodId': Current Week,
- 'seasonId': Current Season, 'segmentId': 0, 'settings':
+ 'seasonId': Year of Current Season,
+ 'segmentId': int,
+ 'settings':        dict_keys(['acquisitionSettings', 'draftSettings', 'financeSettings', 'isCustomizable',
+                               'isPublic', 'name', 'restrictionType', 'rosterSettings', 'scheduleSettings',
+                               'scoringSettings', 'size', 'tradeSettings'])
+}
+
+----------------------------------------- mMatchup Parameter -----------------------------------------
+                                {
+                                    'view': 'mMatchup',
+                                    'scoringPeriodId': week     – optional
+                                }
+
+
+dict_keys(['draftDetail', 'gameId', 'id', 'schedule', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'teams'])
+
+----------------------------------------- mMatchupScore Parameter -----------------------------------------
+                                {
+                                    'view': 'mMatchupScore',
+                                    'scoringPeriodId': week     – optional
+                                }
+
+dict_keys(['draftDetail', 'gameId', 'id', 'schedule', 'scoringPeriodId', 'seasonId', 'segmentId', 'status'])
+
+-----------------------------------------------------------------------------------------------------------
 
 TO DO LIST
     • Team Abbreviations Dictionary {id: abbrev}
-    • Dashboard
+    • Player Info
     • Free Agents
 """
 
@@ -115,7 +142,6 @@ url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/se
       '?view=mSettings'
 response2 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
-print(response2)
 
 rosterSettings = {}
 for code, quantity in response2['settings']['rosterSettings']['lineupSlotCounts'].items():
@@ -134,6 +160,9 @@ url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/se
 response3 = requests.get(url,
                          params={'scoringPeriodId': week},
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
+
+print(response3.keys())
+exit(0)
 
 data = []
 
