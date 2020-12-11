@@ -1,5 +1,64 @@
-# Iain Muir
-# iam9ez
+"""
+Iain Muir, iam9ez
+
+Explore ESPN Fantasy Football API
+
+API SUMMARY:
+
+url = https://fantasy.espn.com/apis/v3/games/ffl/seasons/<SEASON>/segments/0/leagues/<LEAGUE_ID>
+response = requests.get(url,
+                        params=
+                            {
+                                view: mSettings,
+                                view: mMatchup,
+                                view: mMatchupScore,
+                                scoringPeriodId: week
+                            }
+                        cookies=
+                            {
+                                SWID: {<ESPN ID>}
+                                espn_s2: '<cookie string>'
+                            }
+
+Empty Parameters
+
+dict_keys(['gameId', 'id', 'members', 'scoringPeriodId', 'seasonId', 'segmentId', 'settings', 'status', 'teams'])
+{'members':  [   {
+                    'displayName': ESPN User ID,
+                    'id': ESPN SWID,
+                    'isLeagueManager': boolean
+                 }, ...
+             ],
+ 'settings': {
+                 'name': League Name
+             }
+ 'teams':    [   {
+                    'abbrev': Team Abbreviation,
+                    'id': Team ID (1- # of teams),
+                    'location': Team Name Pt. 1,
+                    'nickname': Team Name Pt. 2,
+                    'owners': ['{SWID}', '{SWID}']
+                 }, ...
+             ], ...
+}
+
+Settings Parameter      –       {view: mSettings}
+
+dict_keys(['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'settings', 'status'])
+{'draftDetail':     {
+                        'drafted': boolean,
+                        'inProgress': boolean
+                    },
+ 'gameId': int,
+ 'id': League ID,
+ 'scoringPeriodId': Current Week,
+ 'seasonId': Current Season, 'segmentId': 0, 'settings':
+
+TO DO LIST
+    • Team Abbreviations Dictionary {id: abbrev}
+    • Dashboard
+    • Free Agents
+"""
 
 import streamlit as st
 import pandas as pd
@@ -25,17 +84,8 @@ teamIDs = {
     -16018: "no"
 }
 
-
 leagueID = 1080747
 season = 2020
-
-"""
-TO DO LIST
-    • Team Abbreviations Dictionary {id: abbrev}
-    • Dashboard
-    • Free Agents
-"""
-
 
 start = time.time()
 
@@ -65,6 +115,8 @@ url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/se
       '?view=mSettings'
 response2 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
+print(response2)
+
 rosterSettings = {}
 for code, quantity in response2['settings']['rosterSettings']['lineupSlotCounts'].items():
     code = int(code)
