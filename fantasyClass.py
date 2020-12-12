@@ -4,7 +4,6 @@ Iain Muir, iam9ez
 Fantasy Football Classes
 """
 
-from datetime import datetime
 import pandas as pd
 import requests
 import pickle
@@ -182,19 +181,19 @@ league_name = client.league_info()['settings']['name']
 if not os.path.exists("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
                       league_name + ".pickle"):
     league = FantasyLeague()
-    pickle.dumps(league, "/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
-                 league_name + ".pickle")
+    pickle.dump(league, open("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                             league_name + ".pickle", 'wb'))
     print("League Created:", league_name)
 
 
 else:
-    league = pickle.load("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
-                         league_name + ".pickle")
+    league = pickle.load(open("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                         league_name + ".pickle", 'rb'))
     league.update_teams()
 
     # DO THINGS
 
-    pickle.dumps(league, "/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
-                 league_name + ".pickle")
+    pickle.dump(league, open("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                             league_name + ".pickle", 'wb'))
 
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
