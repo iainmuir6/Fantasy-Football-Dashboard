@@ -7,7 +7,9 @@ Fantasy Football Classes
 from datetime import datetime
 import pandas as pd
 import requests
+import pickle
 import time
+import os
 
 
 class EspnApi:
@@ -152,6 +154,10 @@ class FantasyLeague:
                                 for code, quantity
                                 in client.league_settings()['settings']['rosterSettings']['lineupSlotCounts'].items()}
 
+    def update_teams(self):
+        for i, team in enumerate(self.teamObjects):
+            team.roster = client.get_roster(i+1)
+
 
 class FantasyTeam:
     def __init__(self, team_id, team_info):
@@ -159,8 +165,6 @@ class FantasyTeam:
         self.name = team_info['teamName']
         self.owners = team_info['names']
         self.roster = client.get_roster(team_id)
-        print(self.roster)
-        print()
 
 
 class LeagueMember:
@@ -173,5 +177,24 @@ class LeagueMember:
 
 client = EspnApi()
 start = time.time()
-league = FantasyLeague()
+
+league_name = client.league_info()['settings']['name']
+if not os.path.exists("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                      league_name + ".pickle"):
+    league = FantasyLeague()
+    pickle.dumps(league, "/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                 league_name + ".pickle")
+    print("League Created:", league_name)
+
+
+else:
+    league = pickle.load("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                         league_name + ".pickle")
+    league.update_teams()
+
+    # DO THINGS
+
+    pickle.dumps(league, "/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
+                 league_name + ".pickle")
+
 print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
