@@ -5,7 +5,9 @@ Fantasy Football Classes
 """
 
 from datetime import datetime
+import pandas as pd
 import requests
+import time
 
 
 class EspnApi:
@@ -105,12 +107,28 @@ class EspnApi:
                                 }).json()
         return settings
 
-    def team_info(self):
+    def get_roster(self, team_id):
         """
         :param
 
         :return
         """
+        team = requests.get(url='https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(self.season) +
+                                '/segments/0/leagues/' + str(self.league_id) + '?view=mRoster',
+                            cookies={
+                                "SWID": self.swid,
+                                "espn_s2": self.espn_s2
+                            }).json()['teams'][team_id - 1]
+        roster = [
+            [
+                p['playerPoolEntry']['player']['fullName'],
+                p['playerId'],
+                self.default_codes[p['playerPoolEntry']['player']['defaultPositionId']],
+                self.slot_codes[p['lineupSlotId']]
+            ]
+            for p in team['roster']['entries']
+        ]
+        return pd.DataFrame(roster, columns=['Name', 'playerID', 'defaultPosition', 'currentPosition'])
 
 
 class FantasyLeague:
@@ -140,7 +158,9 @@ class FantasyTeam:
         self.id = team_id
         self.name = team_info['teamName']
         self.owners = team_info['names']
-        self.roster = ''
+        self.roster = client.get_roster(team_id)
+        print(self.roster)
+        print()
 
 
 class LeagueMember:
@@ -152,6 +172,6 @@ class LeagueMember:
 
 
 client = EspnApi()
+start = time.time()
 league = FantasyLeague()
-print(league.teamObjects[4].name)
-
+print("   --- Finished in %s seconds ---  " % round(time.time() - start, 4))
