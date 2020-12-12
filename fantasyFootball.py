@@ -71,6 +71,54 @@ dict_keys(['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmen
 
 dict_keys(['draftDetail', 'gameId', 'id', 'schedule', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'teams'])
 
+{'id': 4,
+ 'roster': {
+                'appliedStatTotal': 69.92,
+                 'entries': [{
+                                'acquisitionDate': 1597541974161,
+                                'acquisitionType': 'DRAFT',
+                                'injuryStatus': 'NORMAL',
+                                'lineupSlotId': 20,
+                                'pendingTransactionIds': None,
+                                'playerId': 3117251,
+                                'playerPoolEntry': {
+                                                        'appliedStatTotal': 0.0,
+                                                        'id': 3117251,
+                                                        'keeperValue': 1,
+                                                        'keeperValueFuture': 1,
+                                                        'lineupLocked': False,
+                                                        'onTeamId': 4,
+                                                        'player': {
+                                                                        'active': True,
+                                                                        'defaultPositionId': 2,
+                                                                        'droppable': False,
+                                                                        'eligibleSlots': [2, 3, 23, 7, 20, 21],
+                                                                        'firstName': 'Christian',
+                                                                        'fullName': 'Christian McCaffrey',
+                                                                        'id': 3117251,
+                                                                        'injured': False,
+                                                                        'injuryStatus': 'DOUBTFUL',
+                                                                        'lastName': 'McCaffrey',
+                                                                        'lastNewsDate': 1607711569000,
+                                                                        'proTeamId': 29,
+                                                                        'rankings': {'0': [{
+                                                                                                'auctionValue': 0,
+                                                                                                'rank': 1,
+                                                                                                'rankSourceId': 7,
+                                                                                                'rankType': 'STANDARD',
+                                                                                                'slotId': 2
+                                                                                            }, ...]
+                                                                        'stats': [{
+                                                                                        'appliedAverage': season avg,
+                                                                                        'appliedStats': {
+                                                                                                            code: #
+                                                                                                        }
+                                                                                        'scoringPeriodId': week
+                                                                                        'seasonId': year
+                                                                                        'statSourceId': 0 – actual
+                                                                                                        1 - projected
+                                                                                  }, ...]
+
 ----------------------------------------- mMatchupScore Parameter -----------------------------------------
                                 {
                                     'view': 'mMatchupScore',
@@ -116,12 +164,20 @@ season = 2020
 
 start = time.time()
 
+url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/segments/0/leagues/' + str(leagueID) + \
+      '?view=mRoster'
+response0 = requests.get(url,
+                         cookies={"SWID": swid, "espn_s2": espn_s2}).json()
+for team in response0['teams']:
+    print(team)
+exit(0)
+
 # --------------------------- LEAGUE INFO ---------------------------
 url = "https://fantasy.espn.com/apis/v3/games/ffl/seasons/" + str(season) + "/segments/0/leagues/" + str(leagueID)
 response1 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
 
-print(response1)
+# print(response1)
 
 leagueInfo = {}
 owners_dict = {}
@@ -162,8 +218,6 @@ url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/se
 response3 = requests.get(url,
                          params={'scoringPeriodId': week},
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
-
-print(response3.keys())
 
 data = []
 

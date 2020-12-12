@@ -105,20 +105,31 @@ class EspnApi:
                                 }).json()
         return settings
 
+    def team_info(self):
+        """
+        :param
+
+        :return
+        """
+
 
 class FantasyLeague:
     def __init__(self):
         self.name = client.league_info()['settings']['name']
         self.members = {member['id']: member['displayName'] for member in client.league_info()['members']}
-        for member in self.members:
-            LeagueMember(member)
-        self.teams = [{team['id']: {'name1': self.members[team['owners'][0]],
-                                    'name2': self.members[team['owners'][1]] if len(team['owners']) == 2 else "n/a",
+        self.teams = [{team['id']: {'names': [self.members[swid] for swid in team['owners']],
+                                    'ownerIDs': team['owners'],
                                     'teamName': team['location'] + " " + team['nickname'],
-                                    'abbreviation': team['abbrev'],
-                                    'ownerIDs': team['owners']}} for team in client.league_info()['teams']]
+                                    'abbreviation': team['abbrev']
+                                    }} for team in client.league_info()['teams']]
+        self.teamObjects = []
+        self.memberObjects = []
         for team in self.teams:
-            FantasyTeam(list(team.keys())[0], team)
+            tm_id, info = list(team.keys())[0], list(team.values())[0]
+            self.teamObjects.append(FantasyTeam(tm_id, info))
+            for name, swid in zip(info['names'], info['ownerIDs']):
+                self.memberObjects.append(LeagueMember(name, info['teamName'], swid, len(info['names']) != 1))
+
         self.roster_settings = {client.slot_codes[int(code)]: quantity
                                 for code, quantity
                                 in client.league_settings()['settings']['rosterSettings']['lineupSlotCounts'].items()}
@@ -127,24 +138,20 @@ class FantasyLeague:
 class FantasyTeam:
     def __init__(self, team_id, team_info):
         self.id = team_id
-        self.name = team_info[team_id]['teamName']
-        self.owners = team_info[team_id]['name1'] \
-            if team_info[team_id]['name2'] == 'n/a' \
-            else [team_info[team_id]['name1'],
-                  team_info[team_id]['name2']]
+        self.name = team_info['teamName']
+        self.owners = team_info['names']
         self.roster = ''
 
 
 class LeagueMember:
-    def __init__(self, member_info):
-        self.name = ''
-        self.team = ''
-        self.swid = ''
+    def __init__(self, name, team, swid, co):
+        self.name = name
+        self.team = team
+        self.swid = swid
+        self.co_coach = co
 
 
 client = EspnApi()
 league = FantasyLeague()
-for each in client.league_history():
-    print(each)
-    print(each.keys())
-    print()
+print(league.teamObjects[4].name)
+
