@@ -8,6 +8,7 @@ import pandas as pd
 import requests
 import pickle
 import time
+import json
 import os
 
 
@@ -19,6 +20,12 @@ class EspnApi:
                        "V1a8LlMRy5W4ZpkvCvJzmQJTZcgfBncMmt1wh5IbsVWJwAm8ElISHA%2F9ooLplPppnKwIi1jbzeJv1UHIuh%2Bio%3D"
         self.league_id = 1080747
         self.season = 2020
+        self.week = requests.get(url='https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(self.season) +
+                                     '/segments/0/leagues/' + str(self.league_id) + '?view=mSettings',
+                                 cookies={
+                                     "SWID": self.swid,
+                                     "espn_s2": self.espn_s2
+                                 }).json()['scoringPeriodId']
         self.slot_codes = {
             0: 'QB', 1: 'TQB', 2: 'RB', 3: 'RB/WR', 4: 'WR', 5: 'WR/TE',
             6: 'TE', 7: 'OP',  8: 'DT', 9: 'DE', 10: 'LB', 11: 'DL',
@@ -131,6 +138,45 @@ class EspnApi:
         ]
         return pd.DataFrame(roster, columns=['Name', 'playerID', 'defaultPosition', 'currentPosition'])
 
+    def get_free_agents(self):
+        """
+        :param
+
+        :return
+        """
+        filters = {"players":
+                       {"filterStatus":
+                            {"value": ["FREEAGENT", "WAIVERS"]},
+                        # "filterSlotIds":{"value": slot_filter},
+                        "limit": 50,
+                        "sortPercOwned":
+                            {"sortPriority": 1,
+                             "sortAsc": False},
+                        "sortDraftRanks": {"sortPriority": 100,
+                                           "sortAsc": True,
+                                           "value": "STANDARD"}}}
+        headers = {'x-fantasy-filter': json.dumps(filters)}
+        free_agents = requests.get(url='https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(self.season) +
+                                       '/segments/0/leagues/' + str(self.league_id) + '?view=kona_player_info',
+                                   params={
+                                       'scoringPeriodId': self.week
+                                   },
+                                   cookies={
+                                       "SWID": self.swid,
+                                       "espn_s2": self.espn_s2
+                                   },
+                                   headers=headers).json()['players']
+        free_agents = [
+            [
+                p['player']['fullName'],
+                p['player']['id'],
+                self.default_codes[p['player']['defaultPositionId']],
+                round(p['player']['stats'][4 if len(p['player']['stats']) == 6 else 3]['appliedTotal'], 2)
+            ]
+            for p in free_agents
+        ]
+        return pd.DataFrame(free_agents, columns=['Name', 'ID', 'Position', 'Projected'])
+
 
 class FantasyLeague:
     def __init__(self):
@@ -175,6 +221,10 @@ class LeagueMember:
 
 
 client = EspnApi()
+
+print(client.get_free_agents().query('Position == "QB"'))
+exit(0)
+
 start = time.time()
 
 league_name = client.league_info()['settings']['name']
