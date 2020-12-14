@@ -168,9 +168,6 @@ url = 'https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(season) + '/se
       '?view=mRoster'
 response0 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
-for team in response0['teams']:
-    print(team)
-exit(0)
 
 # --------------------------- LEAGUE INFO ---------------------------
 url = "https://fantasy.espn.com/apis/v3/games/ffl/seasons/" + str(season) + "/segments/0/leagues/" + str(leagueID)
@@ -231,34 +228,29 @@ for team in response3['teams']:
     # Modified: Iain Muir
     for p in team['roster']['entries']:
         name = p['playerPoolEntry']['player']['fullName']
-        default_position = p['playerPoolEntry']['player']['defaultPositionId']
-        position = default_codes[default_position]
+        position = default_codes[p['playerPoolEntry']['player']['defaultPositionId']]
         current = slot_codes[p['lineupSlotId']]
         player_id = p['playerId']
 
-        # injured status (need try/exc bc of D/ST)
-        injury_status = 'NA'
-        try:
-            injury_status = p['playerPoolEntry']['player']['injuryStatus']
-        except (Exception, IndexError) as e:
-            pass
-
-        # projected/actual points
         projected, actual = None, None
-        for stat in p['playerPoolEntry']['player']['stats']:
+        for i, stat in enumerate(p['playerPoolEntry']['player']['stats']):
+            print(len(stat))
             if stat['scoringPeriodId'] != week:
                 continue
             if stat['statSourceId'] == 0:
+                print("Actual", i)
                 actual = stat['appliedTotal']
             elif stat['statSourceId'] == 1:
+                print("Projected", i)
                 projected = stat['appliedTotal']
+            print()
 
         data.append([
-            name, player_id, position, current, injury_status, projected, actual
+            name, player_id, position, current, projected, actual
         ])
 
     data = pd.DataFrame(data,
-                        columns=['Player', 'ID', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual'])
+                        columns=['Player', 'ID', 'Pos', 'currentPos', 'Proj', 'Actual'])
 
 starters = data.query('currentPos != "BE"')
 starters['currentPos'] = pd.Categorical(starters['currentPos'], ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K'])
@@ -286,6 +278,8 @@ for pos, num in rosterSettings.items():
             player[3] = player[2]
             player.append(True)
         optimized.append(player)
+
+exit(0)
 
 optimized = pd.DataFrame(optimized,
                          columns=['Player', 'ID', 'Pos', 'currentPos', 'Status', 'Proj', 'Actual', 'New'])
