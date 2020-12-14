@@ -211,6 +211,10 @@ class FantasyTeam:
         self.owners = team_info['names']
         self.roster = client.get_roster(team_id)
 
+    def dashboard(self):
+        for player in self.roster.values:
+            print(player)
+
 
 class LeagueMember:
     def __init__(self, name, team, swid, co):
@@ -220,10 +224,11 @@ class LeagueMember:
         self.co_coach = co
 
 
-client = EspnApi()
+class Player:
+    def __init__(self):
+        pass
 
-print(client.get_free_agents().query('Position == "QB"'))
-exit(0)
+client = EspnApi()
 
 start = time.time()
 
@@ -239,9 +244,9 @@ if not os.path.exists("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootba
 else:
     league = pickle.load(open("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
                          league_name + ".pickle", 'rb'))
-    league.update_teams()
+    # league.update_teams()
 
-    # DO THINGS
+    league.teamObjects[4].dashboard()
 
     pickle.dump(league, open("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
                              league_name + ".pickle", 'wb'))
