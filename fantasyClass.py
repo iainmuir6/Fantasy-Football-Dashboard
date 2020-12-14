@@ -123,20 +123,40 @@ class EspnApi:
         """
         team = requests.get(url='https://fantasy.espn.com/apis/v3/games/ffl/seasons/' + str(self.season) +
                                 '/segments/0/leagues/' + str(self.league_id) + '?view=mRoster',
+                            params={
+                                'scoringPeriodId': self.week
+                            },
                             cookies={
                                 "SWID": self.swid,
                                 "espn_s2": self.espn_s2
                             }).json()['teams'][team_id - 1]
+
+        actual, projected = [], []
+        for p in team['roster']['entries']:
+            act, proj = None, None
+            for stat in p['playerPoolEntry']['player']['stats']:
+                if stat['scoringPeriodId'] != self.week:
+                    continue
+                if stat['statSourceId'] == 0:
+                    act = round(stat['appliedTotal'], 2)
+                elif stat['statSourceId'] == 1:
+                    proj = round(stat['appliedTotal'], 2)
+            actual.append(act) if act else actual.append(None)
+            projected.append(proj) if proj else projected.append(None)
+
         roster = [
             [
                 p['playerPoolEntry']['player']['fullName'],
                 p['playerId'],
                 self.default_codes[p['playerPoolEntry']['player']['defaultPositionId']],
-                self.slot_codes[p['lineupSlotId']]
+                self.slot_codes[p['lineupSlotId']],
+                projected[i],
+                actual[i]
             ]
-            for p in team['roster']['entries']
+            for i, p in enumerate(team['roster']['entries'])
         ]
-        return pd.DataFrame(roster, columns=['Name', 'playerID', 'defaultPosition', 'currentPosition'])
+        return pd.DataFrame(roster, columns=['Name', 'playerID', 'defaultPosition',
+                                             'currentPosition', 'projected', 'actual'])
 
     def get_free_agents(self):
         """
@@ -227,6 +247,7 @@ class LeagueMember:
 class Player:
     def __init__(self):
         pass
+
 
 client = EspnApi()
 
