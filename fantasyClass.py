@@ -270,6 +270,8 @@ class FantasyTeam:
         free_agents = client.get_free_agents()
         fa_names = list(free_agents['Name'])
         options = roster.append(free_agents).reset_index().drop(axis=1, labels='index')
+        total = 0.0
+
         for position in ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K']:
             number = roster_settings[position]
             starters_pos = starters.query('currentPosition == "' + position + '"')
@@ -279,6 +281,7 @@ class FantasyTeam:
 
             best = options.query("defaultPosition == " + condition).sort_values(by='projected',
                                                                                 ascending=False)[:number]
+            total += best['projected'].sum()
             options = options.drop(labels=list(best.index), axis=0)
 
             for starter, optimized in zip(starters_pos.values, best.values):
@@ -301,12 +304,19 @@ class FantasyTeam:
 
                 old.markdown(
                     "<p style='text-align:left;background-color:" + color1 + ";'> <img src='" + src1 + "' height='" +
-                    height + "'/>  (" + starter[2] + ") <b>" + starter[0] + "</b>  -  " +
-                    str(round(float(starter[-2]), 2)) + " </p>", unsafe_allow_html=True)
+                    height + "'/>  (" + starter[2] + ") <b>" + starter[0] + "</b>  <span style='float:right'> " +
+                    str(round(float(starter[-2]), 2)) + " </span></p>", unsafe_allow_html=True)
                 new.markdown(
                     "<p style='text-align:left;background-color:" + color2 + ";'> <img src='" + src2 + "' height='" +
-                    height + "'/>  (" + optimized[2] + ") <b>" + optimized[0] + "</b>  -  " +
-                    str(round(float(optimized[-1]), 2)) + " </p>", unsafe_allow_html=True)
+                    height + "'/>  (" + optimized[2] + ") <b>" + optimized[0] + "</b>  <span style='float:right'> " +
+                    str(round(float(optimized[-1]), 2)) + " </span></p>", unsafe_allow_html=True)
+
+        old.markdown(
+            "<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(starters['projected'].sum(), 2)) +
+            "</b> </p>", unsafe_allow_html=True)
+        new.markdown(
+            "<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(total, 2)) +
+            "</b> </p>", unsafe_allow_html=True)
 
 
 class LeagueMember:
@@ -320,6 +330,10 @@ class LeagueMember:
 class Player:
     def __init__(self):
         pass
+
+
+def read_ppf_data(data):
+    pass
 
 
 client = EspnApi()
