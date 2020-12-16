@@ -4,6 +4,7 @@ Iain Muir, iam9ez
 Fantasy Football Classes
 """
 
+import streamlit as st
 import pandas as pd
 import requests
 import pickle
@@ -37,7 +38,8 @@ class EspnApi:
             1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'D/ST'
         }
         self.team_ids = {
-            -16018: "no"
+            -16018: "no",
+            -16011: ""
         }
 
     def league_history(self):
@@ -223,16 +225,34 @@ class FantasyTeam:
         self.roster = client.get_roster(team_id)
 
     def dashboard(self):
+        st.markdown(
+            "<center> <img src='https://espnpressroom.com/us/files/2016/08/Fantasy-Football-App-LOGO-500x405.png' "
+            "height='200' /> </center>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align:center';> Fantasy Lineup Optimization </h1>", unsafe_allow_html=True)
+        old, new = st.beta_columns(2)
+        old.markdown("<h3 style='text-align:center';> Current Lineup </h1>", unsafe_allow_html=True)
+        new.markdown("<h3 style='text-align:center';> Optimized Lineup </h1>", unsafe_allow_html=True)
+
         roster_settings = {client.slot_codes[int(c)]: q for c, q in
                            client.league_settings()['settings']['rosterSettings']['lineupSlotCounts'].items() if q != 0}
-        options = self.roster.drop(axis=1, labels=['currentPosition', 'actual']).append(client.get_free_agents()). \
-            reset_index().drop(axis=1, labels='index')
-        for position, number in roster_settings.items():
-            if position == "BE":
-                continue
+        starters = self.roster.query('currentPosition != "BE"')
+        roster = starters.drop(axis=1, labels=['currentPosition', 'actual'])
+        free_agents = client.get_free_agents()
+        options = roster.append(free_agents).reset_index().drop(axis=1, labels='index')
+        for position in ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K']:
+            number = roster_settings[position]
+            print(starters.query('currentPosition == "' + position + '"'))
+
+            if position == 'RB/WR/TE':
+                best = options.query("defaultPosition == 'RB' | "
+                                     "defaultPosition == 'WR' | "
+                                     "defaultPosition == 'TE'").sort_values(by='projected',
+                                                                            ascending=False)[:number]
             else:
-                print(options.query('defaultPosition == "' + position + '"').sort_values(by='projected',
-                                                                                         ascending=False).head(number))
+                best = options.query('defaultPosition == "' + position + '"').sort_values(by='projected',
+                                                                                          ascending=False)[:number]
+            options = options.drop(labels=list(best.index), axis=0)
+            print(best)
 
 
 class LeagueMember:
