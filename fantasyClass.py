@@ -131,29 +131,20 @@ class EspnApi:
                                 "espn_s2": self.espn_s2
                             }).json()['teams'][team_id - 1]
 
-        actual, projected = [], []
-        for p in team['roster']['entries']:
-            act, proj = None, None
-            for stat in p['playerPoolEntry']['player']['stats']:
-                if stat['scoringPeriodId'] != self.week:
-                    continue
-                if stat['statSourceId'] == 0:
-                    act = round(stat['appliedTotal'], 2)
-                elif stat['statSourceId'] == 1:
-                    proj = round(stat['appliedTotal'], 2)
-            actual.append(act) if act else actual.append(None)
-            projected.append(proj) if proj else projected.append(None)
-
         roster = [
             [
                 p['playerPoolEntry']['player']['fullName'],
                 p['playerId'],
                 self.default_codes[p['playerPoolEntry']['player']['defaultPositionId']],
                 self.slot_codes[p['lineupSlotId']],
-                projected[i],
-                actual[i]
+                [round(stat['appliedTotal'], 2)
+                 for stat in p['playerPoolEntry']['player']['stats']
+                 if stat['scoringPeriodId'] == self.week and stat['statSourceId'] == 1][0],
+                [round(stat['appliedTotal'], 2)
+                 for stat in p['playerPoolEntry']['player']['stats']
+                 if stat['scoringPeriodId'] == self.week and stat['statSourceId'] == 0]
             ]
-            for i, p in enumerate(team['roster']['entries'])
+            for p in team['roster']['entries']
         ]
         return pd.DataFrame(roster, columns=['Name', 'playerID', 'defaultPosition',
                                              'currentPosition', 'projected', 'actual'])
@@ -195,7 +186,7 @@ class EspnApi:
             ]
             for p in free_agents
         ]
-        return pd.DataFrame(free_agents, columns=['Name', 'ID', 'Position', 'Projected'])
+        return pd.DataFrame(free_agents, columns=['Name', 'playerID', 'defaultPosition', 'projected'])
 
 
 class FantasyLeague:
@@ -232,8 +223,16 @@ class FantasyTeam:
         self.roster = client.get_roster(team_id)
 
     def dashboard(self):
-        for player in self.roster.values:
-            print(player)
+        roster_settings = {client.slot_codes[int(c)]: q for c, q in
+                           client.league_settings()['settings']['rosterSettings']['lineupSlotCounts'].items() if q != 0}
+        options = self.roster.drop(axis=1, labels=['currentPosition', 'actual']).append(client.get_free_agents()). \
+            reset_index().drop(axis=1, labels='index')
+        for position, number in roster_settings.items():
+            if position == "BE":
+                continue
+            else:
+                print(options.query('defaultPosition == "' + position + '"').sort_values(by='projected',
+                                                                                         ascending=False).head(number))
 
 
 class LeagueMember:
