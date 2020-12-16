@@ -38,8 +38,38 @@ class EspnApi:
             1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'D/ST'
         }
         self.team_ids = {
+            -16001: "atl",
+            -16002: "buf",
+            -16003: "chi",
+            -16004: "cin",
+            -16005: "cle",
+            -16006: "dal",
+            -16007: "den",
+            -16008: "det",
+            -16009: "gb",
+            -16010: "ten",
+            -16011: "ind",
+            -16012: "kc",
+            -16013: "lv",
+            -16014: "lar",
+            -16015: 'mia',
+            -16016: "min",
+            -16017: "ne",
             -16018: "no",
-            -16011: ""
+            -16019: "nyg",
+            -16020: "nyj",
+            -16021: "phi",
+            -16022: "ari",
+            -16023: "pit",
+            -16024: "lac",
+            -16025: "sf",
+            -16026: "sea",
+            -16027: "tb",
+            -16028: "wsh",
+            -16029: "car",
+            -16030: "jax",
+            -16033: 'bal',
+            -16034: 'hou',
         }
 
     def league_history(self):
@@ -238,21 +268,45 @@ class FantasyTeam:
         starters = self.roster.query('currentPosition != "BE"')
         roster = starters.drop(axis=1, labels=['currentPosition', 'actual'])
         free_agents = client.get_free_agents()
+        fa_names = list(free_agents['Name'])
         options = roster.append(free_agents).reset_index().drop(axis=1, labels='index')
         for position in ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K']:
             number = roster_settings[position]
-            print(starters.query('currentPosition == "' + position + '"'))
+            starters_pos = starters.query('currentPosition == "' + position + '"')
+            condition = "defaultPosition == 'RB' | defaultPosition == 'WR' | defaultPosition == 'TE'" \
+                if position == 'RB/WR/TE' \
+                else "defaultPosition == '" + position + "'"
 
-            if position == 'RB/WR/TE':
-                best = options.query("defaultPosition == 'RB' | "
-                                     "defaultPosition == 'WR' | "
-                                     "defaultPosition == 'TE'").sort_values(by='projected',
-                                                                            ascending=False)[:number]
-            else:
-                best = options.query('defaultPosition == "' + position + '"').sort_values(by='projected',
-                                                                                          ascending=False)[:number]
+            best = options.query("defaultPosition == " + condition).sort_values(by='projected',
+                                                                                ascending=False)[:number]
             options = options.drop(labels=list(best.index), axis=0)
-            print(best)
+
+            for starter, optimized in zip(starters_pos.values, best.values):
+                color1 = 'lightcoral' if starter[0] not in list(best['Name']) \
+                    else 'white'
+                color2 = 'moccasin' if optimized[0] in fa_names \
+                    else 'lightgreen' if optimized[0] not in list(starters_pos['Name']) \
+                    else 'white'
+
+                if position == 'D/ST':
+                    src1 = "https://a.espncdn.com/i/teamlogos/nfl/500/" + client.team_ids[starter[1]] + ".png"
+                    src2 = "https://a.espncdn.com/i/teamlogos/nfl/500/" + client.team_ids[optimized[1]] + ".png"
+                    height = '50'
+                else:
+                    src1 = "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/" + str(
+                        starter[1]) + ".png&w=350&h=254"
+                    src2 = "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/" + str(
+                        optimized[1]) + ".png&w=350&h=254"
+                    height = '40'
+
+                old.markdown(
+                    "<p style='text-align:left;background-color:" + color1 + ";'> <img src='" + src1 + "' height='" +
+                    height + "'/>  (" + starter[2] + ") <b>" + starter[0] + "</b>  -  " +
+                    str(round(float(starter[-2]), 2)) + " </p>", unsafe_allow_html=True)
+                new.markdown(
+                    "<p style='text-align:left;background-color:" + color2 + ";'> <img src='" + src2 + "' height='" +
+                    height + "'/>  (" + optimized[2] + ") <b>" + optimized[0] + "</b>  -  " +
+                    str(round(float(optimized[-1]), 2)) + " </p>", unsafe_allow_html=True)
 
 
 class LeagueMember:
