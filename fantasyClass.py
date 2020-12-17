@@ -10,6 +10,7 @@ import requests
 import pickle
 import time
 import json
+import sys
 import os
 
 
@@ -269,7 +270,11 @@ class FantasyTeam:
         roster = starters.drop(axis=1, labels=['currentPosition', 'actual'])
         free_agents = client.get_free_agents()
         fa_names = list(free_agents['Name'])
-        options = roster.append(free_agents).reset_index().drop(axis=1, labels='index')
+        options = roster.append(free_agents)
+        if pff:
+            pff_projections = read_ppf_data(sys.argv[1], options)
+            options = options.join(pd.DataFrame({'pffProjections': pff_projections}))
+
         total = 0.0
 
         for position in ['QB', 'RB', 'WR', 'TE', 'RB/WR/TE', 'D/ST', 'K']:
@@ -309,7 +314,7 @@ class FantasyTeam:
                 new.markdown(
                     "<p style='text-align:left;background-color:" + color2 + ";'> <img src='" + src2 + "' height='" +
                     height + "'/>  (" + optimized[2] + ") <b>" + optimized[0] + "</b>  <span style='float:right'> " +
-                    str(round(float(optimized[-1]), 2)) + " </span></p>", unsafe_allow_html=True)
+                    str(round(float(optimized[-2]), 2)) + " </span></p>", unsafe_allow_html=True)
 
         old.markdown(
             "<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(starters['projected'].sum(), 2)) +
@@ -317,6 +322,8 @@ class FantasyTeam:
         new.markdown(
             "<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(total, 2)) +
             "</b> </p>", unsafe_allow_html=True)
+
+
 
 
 class LeagueMember:
@@ -332,13 +339,23 @@ class Player:
         pass
 
 
-def read_ppf_data(data):
-    pass
+def read_ppf_data(data, player_options):
+    df = pd.read_csv(data)
+    projected = []
+    for name in player_options['Name']:
+        try:
+            projected.append(df.query('Name == "' + name.replace("/", "") + '"').values[0][5])
+        except IndexError:
+            projected.append(None)
+    return projected
 
-
-client = EspnApi()
 
 start = time.time()
+client = EspnApi()
+
+pff = False
+if len(sys.argv) > 1:
+    pff = True
 
 league_name = client.league_info()['settings']['name']
 if not os.path.exists("/Users/iainmuir/PycharmProjects/Desktop/espnFantasyFootball/leaguePickles/" +
