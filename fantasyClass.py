@@ -2,6 +2,13 @@
 Iain Muir, iam9ez
 
 Fantasy Football Classes
+
+TO-DO:
+    • PFF Data
+    • Lock players after they've played
+    • Multi-page dashboard
+    • if __name__ == '__main__':
+
 """
 
 import streamlit as st
@@ -271,6 +278,7 @@ class FantasyTeam:
         free_agents = client.get_free_agents()
         fa_names = list(free_agents['Name'])
         options = roster.append(free_agents)
+
         if pff:
             pff_projections = read_ppf_data(sys.argv[1], options)
             options = options.join(pd.DataFrame({'pffProjections': pff_projections}))
@@ -314,7 +322,7 @@ class FantasyTeam:
                 new.markdown(
                     "<p style='text-align:left;background-color:" + color2 + ";'> <img src='" + src2 + "' height='" +
                     height + "'/>  (" + optimized[2] + ") <b>" + optimized[0] + "</b>  <span style='float:right'> " +
-                    str(round(float(optimized[-2]), 2)) + " </span></p>", unsafe_allow_html=True)
+                    str(round(float(optimized[-1]), 2)) + " </span></p>", unsafe_allow_html=True)
 
         old.markdown(
             "<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(starters['projected'].sum(), 2)) +
@@ -322,8 +330,6 @@ class FantasyTeam:
         new.markdown(
             "<p style='text-align:center;font-size:20px;'> <b> Total: " + str(round(total, 2)) +
             "</b> </p>", unsafe_allow_html=True)
-
-
 
 
 class LeagueMember:
