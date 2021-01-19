@@ -174,7 +174,8 @@ url = "https://fantasy.espn.com/apis/v3/games/ffl/seasons/" + str(season) + "/se
 response1 = requests.get(url,
                          cookies={"SWID": swid, "espn_s2": espn_s2}).json()
 
-# print(response1)
+print(response1)
+exit(0)
 
 leagueInfo = {}
 owners_dict = {}
