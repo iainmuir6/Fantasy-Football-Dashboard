@@ -3,21 +3,25 @@ Iain Muir, iam9ez
 
 PROJECT DESCRIPTION
 
-/Users/iainmuir/PycharmProjects/Desktop/streamlitApp/espnFantasyFootball/app.py
+/Users/iainmuir/PycharmProjects/Desktop/streamlitApp/espnFantasyFootball/fantasy_app.py
 """
 
 import streamlit as st
 
-import basketball
-import football
+try:
+    import fba_app
+    import ffl_app
+except ModuleNotFoundError:
+    from espnFantasyFootball import fba_app, ffl_app
+
 import home
 
 
 def launch():
     pages = {
         "Home": home,
-        "Football": football,
-        "Basketball": basketball
+        "Football": fba_app,
+        "Basketball": ffl_app
     }
 
     st.sidebar.title("Navigation")
