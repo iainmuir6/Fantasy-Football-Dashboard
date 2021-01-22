@@ -11,10 +11,9 @@ import streamlit as st
 try:
     import fba_app
     import ffl_app
+    import home
 except ModuleNotFoundError:
-    from espnFantasyFootball import fba_app, ffl_app
-
-import home
+    from espnFantasyFootball import fba_app, ffl_app, home
 
 
 def launch():
@@ -24,7 +23,7 @@ def launch():
         "Basketball": ffl_app
     }
 
-    st.sidebar.title("Navigation")
+    st.sidebar.title("Fantasy Navigation")
     selection = st.sidebar.radio("Go to", list(pages.keys()))
     page = pages[selection]
     page.run()
