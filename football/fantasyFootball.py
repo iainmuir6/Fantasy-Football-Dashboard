@@ -135,16 +135,15 @@ TO DO LIST
     • Free Agents
 """
 
+from secrets import SWID, ESPN_S2
 import streamlit as st
 import pandas as pd
 import requests
 import time
 
 # League of Extraordinary Gentlemen
-swid = "{94FD803F-87FC-4BDC-BD80-3F87FCEBDCFC}"
-espn_s2 = "AEA%2Fs7CAHybhPWiuG5cTGqmfaH2%2F%2FeUCDP5bTDB4j0hDCLGW58ieoYJCnEB9uxNNPrx1CRjc8cuCinM54m2mUnf5PwfVmZ6Xup" \
-          "0Hx1GSpuVoHuTjibfHSbu%2FDM0Zp%2BDhDygZS7zUVRZ1ag7Dm%2F7S2zcys1Ywxf4Fj1mFVKOmnIygFMV1a8LlMRy5W4ZpkvCvJzmQ" \
-          "JTZcgfBncMmt1wh5IbsVWJwAm8ElISHA%2F9ooLplPppnKwIi1jbzeJv1UHIuh%2Bio%3D"
+swid = SWID
+espn_s2 = ESPN_S2
 
 slot_codes = {
     0: 'QB', 1: 'TQB', 2: 'RB', 3: 'RB/WR', 4: 'WR', 5: 'WR/TE',

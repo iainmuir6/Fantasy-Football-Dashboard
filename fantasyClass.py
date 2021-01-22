@@ -12,6 +12,7 @@ Fantasy Football Classes
 
 """
 
+from secrets import SWID, ESPN_S2
 import pandas as pd
 import requests
 import json
@@ -25,10 +26,8 @@ import json
 
 class EspnApi:
     def __init__(self, sport):
-        self.swid = "{94FD803F-87FC-4BDC-BD80-3F87FCEBDCFC}"
-        self.espn_s2 = "AEA%2Fs7CAHybhPWiuG5cTGqmfaH2%2F%2FeUCDP5bTDB4j0hDCLGW58ieoYJCnEB9uxNNPrx1CRjc8cuCinM54m2mUnf" \
-                       "5PwfVmZ6Xup0Hx1GSpuVoHuTjibfHSbu%2FDM0Zp%2BDhDygZS7zUVRZ1ag7Dm%2F7S2zcys1Ywxf4Fj1mFVKOmnIygFM" \
-                       "V1a8LlMRy5W4ZpkvCvJzmQJTZcgfBncMmt1wh5IbsVWJwAm8ElISHA%2F9ooLplPppnKwIi1jbzeJv1UHIuh%2Bio%3D"
+        self.swid = SWID
+        self.espn_s2 = ESPN_S2
         self.sport = sport
         self.season = 2021
 

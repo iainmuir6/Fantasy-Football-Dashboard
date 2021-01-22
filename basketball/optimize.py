@@ -14,11 +14,6 @@ season = 2021
 LEAGUE_ID = client.league_id
 TEAM_ID = client.team_id
 
-SWID = "{94FD803F-87FC-4BDC-BD80-3F87FCEBDCFC}"
-ESPN_S2 = "AEA%2Fs7CAHybhPWiuG5cTGqmfaH2%2F%2FeUCDP5bTDB4j0hDCLGW58ieoYJCnEB9uxNNPrx1CRjc8cuCinM54m2mUnf" \
-          "5PwfVmZ6Xup0Hx1GSpuVoHuTjibfHSbu%2FDM0Zp%2BDhDygZS7zUVRZ1ag7Dm%2F7S2zcys1Ywxf4Fj1mFVKOmnIygFM" \
-          "V1a8LlMRy5W4ZpkvCvJzmQJTZcgfBncMmt1wh5IbsVWJwAm8ElISHA%2F9ooLplPppnKwIi1jbzeJv1UHIuh%2Bio%3D"
-
 url = 'https://www.fantasypros.com/nba/projections/weekly-overall.php'
 page = requests.get(url)
 
@@ -64,4 +59,3 @@ for k in scoring.keys():
 points = pd.DataFrame(data=points)
 points['total'] = points.sum(axis=1)
 points = points.sort_values(by='total')
-print(points)
