@@ -9,16 +9,16 @@ PROJECT DESCRIPTION
 import streamlit as st
 
 try:
+    from espnFantasyFootball import fantasy_home, fba_app, ffl_app
+except ModuleNotFoundError:
     import fba_app
     import ffl_app
-    import home
-except ModuleNotFoundError:
-    from espnFantasyFootball import fba_app, ffl_app, home
+    import fantasy_home
 
 
 def launch():
     pages = {
-        "Home": home,
+        "Home": fantasy_home,
         "Football": fba_app,
         "Basketball": ffl_app
     }
